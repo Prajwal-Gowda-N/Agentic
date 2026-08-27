@@ -1,0 +1,73 @@
+import os
+from autogen import AssistantAgent, UserProxyAgent
+
+# ------------------------------------
+# 1. Set Groq API Key
+# ------------------------------------
+os.environ["GROQ_API_KEY"] = "your_groq_api_key"
+
+# ------------------------------------
+# 2. Configure LLM
+# ------------------------------------
+llm_config = {
+    "config_list": [
+        {
+            "model": "llama-3.1-8b-instant",
+            "api_key": os.environ["GROQ_API_KEY"],
+            "base_url": "https://api.groq.com/openai/v1"
+        }
+    ]
+}
+
+# ------------------------------------
+# 3. Create AI Research Agent
+# ------------------------------------
+research_agent = AssistantAgent(
+    name="Research_Agent",
+    system_message="""
+You are an AI Research Agent.
+
+Your task is to:
+1. Study the given research topic.
+2. Identify important concepts and recent trends.
+3. Summarize key methods and applications.
+4. Discuss advantages and limitations.
+5. Present the findings in a clear research-report format.
+""",
+    llm_config=llm_config,
+)
+
+# ------------------------------------
+# 4. Create User Proxy Agent
+# ------------------------------------
+user_proxy = UserProxyAgent(
+    name="User_Proxy",
+
+    # No human input during execution
+    human_input_mode="NEVER",
+
+    code_execution_config={
+        "work_dir": "research",
+        "use_docker": False
+    }
+)
+
+# ------------------------------------
+# 5. Start Research Task
+# ------------------------------------
+user_proxy.initiate_chat(
+    research_agent,
+    message="""
+Research the topic:
+
+"Applications of Generative AI in Healthcare"
+
+Prepare a short research report containing:
+- Introduction
+- Important applications
+- Benefits
+- Challenges
+- Future scope
+- Conclusion
+"""
+)

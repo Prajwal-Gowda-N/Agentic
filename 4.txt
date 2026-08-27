@@ -1,0 +1,81 @@
+import os
+import subprocess
+
+from langchain_groq import ChatGroq
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+
+# Groq API
+os.environ["GROQ_API_KEY"] = "YOUR_KEY"
+
+llm = ChatGroq(
+    model="openai/gpt-oss-20b",
+    temperature=0
+)
+
+
+# Generate code
+generate = ChatPromptTemplate.from_template(
+    "Write only Python code for: {task}"
+) | llm | StrOutputParser()
+
+
+# Fix code
+fix = ChatPromptTemplate.from_template(
+    """
+Fix this Python code.
+
+Task: {task}
+
+Code:
+{code}
+
+Error:
+{error}
+
+Return only corrected Python code.
+"""
+) | llm | StrOutputParser()
+
+
+# Run Python code
+def run(code):
+    with open("generated.py", "w") as f:
+        f.write(code)
+
+    return subprocess.run(
+        ["python", "generated.py"],
+        capture_output=True,
+        text=True
+    )
+
+
+# Task
+task = "Write Python code to calculate factorial of 5."
+
+# Generate code
+code = generate.invoke({"task": task})
+
+
+# Self-correction
+for i in range(3):
+
+    result = run(code)
+
+    if result.returncode == 0:
+        print("Code:")
+        print(code)
+
+        print("Output:")
+        print(result.stdout)
+
+        break
+
+    print("Error:", result.stderr)
+
+    code = fix.invoke({
+        "task": task,
+        "code": code,
+        "error": result.stderr
+    })

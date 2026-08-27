@@ -1,0 +1,62 @@
+
+import os
+import pandas as pd
+
+from phi.agent import Agent
+from phi.model.groq import Groq
+
+# Use your NEW Groq API key
+os.environ["GROQ_API_KEY"] = "Your key"
+
+# Sample sales data
+df = pd.DataFrame({
+    "Month": ["Jan", "Feb", "Mar", "Apr", "May"],
+    "Product": ["Laptop", "Mobile", "Tablet", "Laptop", "Mobile"],
+    "Region": ["South", "North", "East", "West", "South"],
+    "Revenue": [50000, 40000, 25000, 60000, 55000],
+    "Profit": [10000, 8000, 4000, 12000, 11000]
+})
+
+display(df)
+
+# Convert dataframe to text
+data_text = df.to_string(index=False)
+
+# Create Phidata agent
+data_agent = Agent(
+    name="Data Analysis Agent",
+    model=Groq(id="llama-3.1-8b-instant"),
+    instructions=[
+        "You are a data analysis assistant.",
+        "Analyze the given sales data carefully.",
+        "Show calculations clearly.",
+        "Give short business insights."
+    ],
+    markdown=True
+)
+
+# Question
+question = "Which product has the highest total revenue? Show calculation."
+
+# Run agent
+response = data_agent.run(
+    f"""
+Here is the sales data:
+
+{data_text}
+
+Question:
+{question}
+"""
+)
+
+print(response.content)
+
+
+
+
+
+!pip install -q phidata groq pandas
+
+
+

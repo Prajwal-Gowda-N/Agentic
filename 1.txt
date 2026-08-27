@@ -1,0 +1,47 @@
+# ==========================================================
+# SIMPLE AI AGENT USING AGNO + GROQ + YFINANCE
+# ==========================================================
+
+# Run once if needed:
+# !pip install -U agno groq yfinance python-dotenv
+
+import os
+from agno.agent import Agent
+from agno.models.groq import Groq
+from agno.tools.yfinance import YFinanceTools
+os.environ["GROQ_API_KEY"] = "API Key"
+# ----------------------------------------------------------
+# CREATE AI AGENT
+# ----------------------------------------------------------
+agent = Agent(
+    model=Groq(id="llama-3.3-70b-versatile"),
+    tools=[
+        YFinanceTools(
+            enable_stock_price=True,
+            enable_company_info=True,
+            enable_analyst_recommendations=True,
+            enable_company_news=True
+        )
+    ],
+
+    instructions=[
+        "Use tables whenever possible.",
+        "Generate a professional financial report.",
+        "Include current stock price.",
+        "Include company information.",
+        "Include analyst recommendations.",
+        "Include recent company news.",
+        "Give a concise summary."
+    ],
+
+    markdown=True
+)
+
+# ----------------------------------------------------------
+# ASK QUESTION
+# ----------------------------------------------------------
+
+agent.print_response(
+    "Generate a detailed report on NVIDIA (NVDA)",
+    stream=True
+)

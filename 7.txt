@@ -1,0 +1,77 @@
+import os
+import cohere
+import numpy as np
+
+os.environ["COHERE_API_KEY"] = "YOUR_KEY"
+co = cohere.ClientV2(api_key=os.environ["COHERE_API_KEY"])
+
+documents = [
+    "Electric vehicles are growing rapidly due to rising fuel prices, government incentives, and environmental awareness.",
+    "The Indian EV market is driven by two-wheelers, three-wheelers, and urban mobility demand.",
+    "Major challenges include charging infrastructure, battery cost, range anxiety, and supply chain limitations.",
+    "Key competitors include Tata Motors, Mahindra Electric, Ola Electric, Ather Energy, and MG Motor.",
+    "Customers prefer EVs because of low running cost, reduced emissions, and government subsidies.",
+    "Battery swapping and fast charging networks are emerging opportunities.",
+    "The market is expected to expand with renewable energy and smart mobility policies."
+]
+
+# Embeddings
+doc_embeddings = np.array(co.embed(
+    model="embed-v4.0",
+    texts=documents,
+    input_type="search_document",
+    embedding_types=["float"]
+).embeddings.float)
+
+query = "Prepare a market research report on electric vehicles in India"
+
+# Search
+query_embedding = np.array(co.embed(
+    model="embed-v4.0",
+    texts=[query],
+    input_type="search_query",
+    embedding_types=["float"]
+).embeddings.float[0])
+
+scores = doc_embeddings @ query_embedding / (
+    np.linalg.norm(doc_embeddings, axis=1) *
+    np.linalg.norm(query_embedding)
+)
+
+docs = [documents[i] for i in np.argsort(scores)[::-1][:5]]
+
+# Rerank
+result = co.rerank(
+    model="rerank-v3.5",
+    query=query,
+    documents=docs,
+    top_n=3
+)
+
+context = "\n".join(docs[r.index] for r in result.results)
+
+# Generate report
+response = co.chat(
+    model="command-a-03-2025",
+    messages=[{
+        "role": "user",
+        "content": f"""
+You are a Market Research Agent.
+
+Query: {query}
+
+Information:
+{context}
+
+Create a report with:
+1. Market Overview
+2. Key Drivers
+3. Challenges
+4. Competitor Landscape
+5. Opportunities
+6. Final Recommendation
+"""
+    }]
+)
+
+print(response.message.content[0].text)

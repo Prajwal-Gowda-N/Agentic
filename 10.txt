@@ -1,0 +1,48 @@
+!pip install -q -U crewai yfinance nest_asyncio
+
+
+import os
+import yfinance as yf
+from crewai import Agent, Task, Crew, Process, LLM
+from crewai.llms import cache as crewai_cache
+crewai_cache.mark_cache_breakpoint = lambda message: message
+llm = LLM(
+    model="groq/openai/gpt-oss-20b",
+    api_key=os.environ["GROQ_API_KEY"]
+)
+info = yf.Ticker("AAPL").info
+data = f"""
+Company: {info.get('longName')}
+Price: {info.get('currentPrice')}
+Market Cap: {info.get('marketCap')}
+PE Ratio: {info.get('trailingPE')}
+"""
+analyst = Agent(
+    role="Stock Analyst",
+    goal="Analyze the stock data",
+    backstory="You are an expert stock analyst",
+    llm=llm
+)
+writer = Agent(
+    role="Report Writer",
+    goal="Create a stock analysis report",
+    backstory="You are an expert financial report writer",
+    llm=llm
+)
+t1 = Task(
+    description=f"Analyze this stock data:\n{data}",
+    expected_output="Detailed stock analysis",
+    agent=analyst
+)
+t2 = Task(
+    description="Create a final report from the stock analysis.",
+    expected_output="Final stock report",
+    agent=writer
+)
+crew = Crew(
+    agents=[analyst, writer],
+    tasks=[t1, t2],
+    process=Process.sequential
+)
+result = crew.kickoff()
+print(result)

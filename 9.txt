@@ -1,0 +1,126 @@
+import os
+from typing import TypedDict
+from langgraph.graph import StateGraph, END
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage
+from IPython.display import Image, display
+
+# Add your Groq API key
+os.environ["GROQ_API_KEY"] = "YOUR KEY"
+
+llm = ChatGroq(
+    model="llama-3.1-8b-instant",
+    temperature=0
+)
+
+class ChatState(TypedDict):
+    query: str
+    category: str
+    response: str
+
+def router_agent(state):
+    query = state["query"]
+
+    prompt = f"""
+Classify this customer query into one category:
+faq, order, or complaint.
+
+Query: {query}
+
+Return only one word.
+"""
+    result = llm.invoke([HumanMessage(content=prompt)])
+    category = result.content.strip().lower()
+
+    if "order" in category:
+        category = "order"
+    elif "complaint" in category:
+        category = "complaint"
+    else:
+        category = "faq"
+
+    return {"category": category}
+
+def faq_agent(state):
+    query = state["query"]
+
+    prompt = f"""
+You are an FAQ support agent.
+Answer this customer question politely:
+
+{query}
+"""
+    result = llm.invoke([HumanMessage(content=prompt)])
+    return {"response": result.content}
+
+def order_agent(state):
+    query = state["query"]
+
+    prompt = f"""
+You are an order support agent.
+Help the customer with order-related query.
+If order ID is missing, ask for it politely.
+
+Query: {query}
+"""
+    result = llm.invoke([HumanMessage(content=prompt)])
+    return {"response": result.content}
+
+def complaint_agent(state):
+    query = state["query"]
+
+    prompt = f"""
+You are a complaint support agent.
+Apologize politely and suggest the next step.
+
+Complaint: {query}
+"""
+    result = llm.invoke([HumanMessage(content=prompt)])
+    return {"response": result.content}
+
+def route(state):
+    if state["category"] == "order":
+        return "Order_Agent"
+    elif state["category"] == "complaint":
+        return "Complaint_Agent"
+    else:
+        return "FAQ_Agent"
+
+workflow = StateGraph(ChatState)
+
+workflow.add_node("Router_Agent", router_agent)
+workflow.add_node("FAQ_Agent", faq_agent)
+workflow.add_node("Order_Agent", order_agent)
+workflow.add_node("Complaint_Agent", complaint_agent)
+
+workflow.set_entry_point("Router_Agent")
+
+workflow.add_conditional_edges(
+    "Router_Agent",
+    route,
+    {
+        "FAQ_Agent": "FAQ_Agent",
+        "Order_Agent": "Order_Agent",
+        "Complaint_Agent": "Complaint_Agent"
+    }
+)
+
+workflow.add_edge("FAQ_Agent", END)
+workflow.add_edge("Order_Agent", END)
+workflow.add_edge("Complaint_Agent", END)
+
+app = workflow.compile()
+display(Image(app.get_graph().draw_mermaid_png()))
+
+# Test chatbot
+query = "I received a damaged product"
+
+result = app.invoke({
+    "query": query,
+    "category": "",
+    "response": ""
+})
+
+print("User Query:", query)
+print("Category:", result["category"])
+print("Bot Response:", result["response"])

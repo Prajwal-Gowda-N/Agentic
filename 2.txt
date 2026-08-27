@@ -1,0 +1,53 @@
+from groq import Groq
+
+client = Groq(
+    api_key="API KEY"
+)
+
+response = client.chat.completions.create(
+    model="llama-3.3-70b-versatile",
+    messages=[
+        {
+            "role":"user",
+            "content":"""
+Goal:
+Organize a college technical fest.
+
+Create a detailed step-by-step plan.
+"""
+        }
+    ]
+)
+
+print(response.choices[0].message.content)
+
+
+
+
+from groq import Groq
+
+client = Groq(
+    api_key="API KEY"
+)
+
+response = client.chat.completions.create(
+    model="llama-3.3-70b-versatile",
+    messages=[
+        {
+            "role":"user",
+            "content":"""
+Question:
+What is 25 × 18?
+
+Show:
+
+Thought
+Action
+Observation
+Final Answer
+"""
+        }
+    ]
+)
+
+print(response.choices[0].message.content)

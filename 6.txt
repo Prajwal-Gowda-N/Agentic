@@ -1,0 +1,43 @@
+import os
+import pandas as pd
+from llama_index.core import Document, VectorStoreIndex, Settings
+from llama_index.core.embeddings import MockEmbedding
+from llama_index.llms.openai_like import OpenAILike
+# Groq API key
+os.environ["GROQ_API_KEY"] = "YOUR KEY"
+# Use Groq with OpenAI-compatible endpoint
+Settings.llm = OpenAILike(
+    model="llama-3.1-8b-instant",
+    api_base="https://api.groq.com/openai/v1",
+    api_key=os.environ["GROQ_API_KEY"],
+    is_chat_model=True,
+    is_function_calling_model=False
+)
+# Simple embedding for classroom demo
+Settings.embed_model = MockEmbedding(embed_dim=384)
+# Sales report data
+sales_df = pd.DataFrame({
+    "Month": ["Jan", "Feb", "Mar", "Apr", "May"],
+    "Product": ["Laptop", "Mobile", "Tablet", "Laptop", "Mobile"],
+    "Region": ["South", "North", "East", "West", "South"],
+    "Revenue": [50000, 40000, 25000, 60000, 55000],
+    "Profit": [10000, 8000, 4000, 12000, 11000]
+})
+display(sales_df)
+# Convert table into document
+sales_text = sales_df.to_string(index=False)
+document = Document(
+    text=f"""
+Sales Report:
+{sales_text}
+"""
+)
+# Create LlamaIndex index
+index = VectorStoreIndex.from_documents([document])
+# Create query engine
+query_engine = index.as_query_engine()
+# Ask question
+response = query_engine.query(
+    "Which product generated the highest total revenue? Show calculation."
+)
+print(response)

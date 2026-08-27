@@ -1,0 +1,66 @@
+!pip install -q langgraph langchain langchain-core langchain-groq
+import os
+from typing import TypedDict
+from langgraph.graph import StateGraph, START, END
+from langchain_groq import ChatGroq
+from IPython.display import Image, display
+os.environ["GROQ_API_KEY"] = "YOUR KEY"
+llm = ChatGroq(model="llama-3.1-8b-instant")
+# 1. Define State
+class FinanceState(TypedDict):
+    question: str
+    stock: str
+    price: float
+    answer: str
+# 2. Node 1: Extract stock symbol
+def extract_stock(state: FinanceState):
+    question = state["question"].upper()
+    if "APPLE" in question or "AAPL" in question:
+        stock = "AAPL"
+    elif "TESLA" in question or "TSLA" in question:
+        stock = "TSLA"
+    elif "MICROSOFT" in question or "MSFT" in question:
+        stock = "MSFT"
+    else:
+        stock = "UNKNOWN"
+    return {"stock": stock}
+# 3. Node 2: Get stock price
+def get_stock_price(state: FinanceState):
+    fake_prices = {
+        "AAPL": 195.50,
+        "TSLA": 180.25,
+        "MSFT": 420.10,
+        "UNKNOWN": 0.0
+    }
+    price = fake_prices[state["stock"]]
+    return {"price": price}
+# 4. Node 3: Generate answer
+def generate_answer(state: FinanceState):
+    prompt = f"""
+    You are a finance assistant.
+    User question: {state['question']}
+    Stock symbol: {state['stock']}
+    Stock price: {state['price']}
+    Give a simple financial response.
+    Do not give investment advice.
+    """
+    response = llm.invoke(prompt)
+    return {"answer": response.content}
+# 5. Build LangGraph
+graph = StateGraph(FinanceState)
+graph.add_node("extract_stock", extract_stock)
+graph.add_node("get_stock_price", get_stock_price)
+graph.add_node("generate_answer", generate_answer)
+graph.add_edge(START, "extract_stock")
+graph.add_edge("extract_stock", "get_stock_price")
+graph.add_edge("get_stock_price", "generate_answer")
+graph.add_edge("generate_answer", END)
+finance_bot = graph.compile()
+display(
+    Image(finance_bot.get_graph().draw_mermaid_png())
+)
+# 6. Run Finance Bot
+result = finance_bot.invoke({
+    "question": "What is the current price of MICROSOFT stock?"
+})
+print(result["answer"])

@@ -20,7 +20,7 @@ os.environ["LANGSMITH_PROJECT"] = "AI-Observability-Demo"
 # 2. Create LLM
 # -----------------------------
 llm = ChatGroq(
-    model="llama-3.1-8b-instant"
+    model="openai/gpt-oss-20b"
 )
 
 # -----------------------------

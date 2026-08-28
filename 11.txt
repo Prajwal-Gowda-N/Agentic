@@ -1,14 +1,10 @@
 import os
 from autogen import AssistantAgent, UserProxyAgent
 
-# ------------------------------------
-# 1. Set Groq API Key
-# ------------------------------------
+
 os.environ["GROQ_API_KEY"] = "your_groq_api_key"
 
-# ------------------------------------
-# 2. Configure LLM
-# ------------------------------------
+
 llm_config = {
     "config_list": [
         {
@@ -19,9 +15,7 @@ llm_config = {
     ]
 }
 
-# ------------------------------------
-# 3. Create AI Research Agent
-# ------------------------------------
+
 research_agent = AssistantAgent(
     name="Research_Agent",
     system_message="""
@@ -37,9 +31,7 @@ Your task is to:
     llm_config=llm_config,
 )
 
-# ------------------------------------
-# 4. Create User Proxy Agent
-# ------------------------------------
+
 user_proxy = UserProxyAgent(
     name="User_Proxy",
 
@@ -52,9 +44,7 @@ user_proxy = UserProxyAgent(
     }
 )
 
-# ------------------------------------
-# 5. Start Research Task
-# ------------------------------------
+
 user_proxy.initiate_chat(
     research_agent,
     message="""

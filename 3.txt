@@ -14,7 +14,7 @@ from langchain_groq import ChatGroq
 os.environ["GROQ_API_KEY"] = "YOUR KEY"
 app = FastAPI(title="LangServe Demo")
 
-llm = ChatGroq(model="llama-3.1-8b-instant")
+llm = ChatGroq(model="openai/gpt-oss-20b")
 prompt2 = ChatPromptTemplate.from_messages([
     ("system", "You are an expert teacher in LangChain and LangServe. Explain concepts clearly for students."),
     ("user", "{question}")

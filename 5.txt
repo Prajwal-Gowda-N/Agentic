@@ -5,7 +5,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_groq import ChatGroq
 from IPython.display import Image, display
 os.environ["GROQ_API_KEY"] = "YOUR KEY"
-llm = ChatGroq(model="llama-3.1-8b-instant")
+llm = ChatGroq(model="openai/gpt-oss-20b")
 # 1. Define State
 class FinanceState(TypedDict):
     question: str

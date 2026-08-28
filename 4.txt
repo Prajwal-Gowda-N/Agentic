@@ -41,7 +41,7 @@ Return only corrected Python code.
 
 
 def run(code):
-    with open("generated.py", "w") as f:
+    with open("generated.py", "w",encoding="utf-8") as f:
         f.write(code)
 
     return subprocess.run(

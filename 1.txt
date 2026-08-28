@@ -14,7 +14,7 @@ os.environ["GROQ_API_KEY"] = "API Key"
 # CREATE AI AGENT
 # ----------------------------------------------------------
 agent = Agent(
-    model=Groq(id="llama-3.3-70b-versatile"),
+    model=Groq(id="openai/gpt-oss-20b"),
     tools=[
         YFinanceTools(
             enable_stock_price=True,

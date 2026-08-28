@@ -7,7 +7,7 @@ from llama_index.llms.openai_like import OpenAILike
 os.environ["GROQ_API_KEY"] = "YOUR KEY"
 # Use Groq with OpenAI-compatible endpoint
 Settings.llm = OpenAILike(
-    model="llama-3.1-8b-instant",
+    model="openai/gpt-oss-20b",
     api_base="https://api.groq.com/openai/v1",
     api_key=os.environ["GROQ_API_KEY"],
     is_chat_model=True,

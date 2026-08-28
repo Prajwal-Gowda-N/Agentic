@@ -25,7 +25,7 @@ data_text = df.to_string(index=False)
 # Create Phidata agent
 data_agent = Agent(
     name="Data Analysis Agent",
-    model=Groq(id="llama-3.1-8b-instant"),
+    model=Groq(id="openai/gpt-oss-20b"),
     instructions=[
         "You are a data analysis assistant.",
         "Analyze the given sales data carefully.",

@@ -1,7 +1,3 @@
 
 
 
-
-cohere:-
-
-"cohere_PuC3M5BQa2M2az86tveGixZWHr48wxHI02bCH2JJ0K1x0d"
